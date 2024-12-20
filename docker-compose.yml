@@ -1,0 +1,33 @@
+
+
+networks:
+  network:
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_Vika
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env.postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_Vika
+    restart: unless-stopped
+    ports:
+      - "5672:5672"  # Проброс RabbitMQ на локальный порт 5672
+      - "15672:15672"  # Доступ к веб-интерфейсу RabbitMQ
+    environment:
+      RABBITMQ_DEFAULT_USER: rmuser
+      RABBITMQ_DEFAULT_PASS: rmpassword
+    networks:
+      - network
+volumes:
+  postgres-data:
