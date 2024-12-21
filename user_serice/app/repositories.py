@@ -9,17 +9,18 @@ class UserRepository:
     @staticmethod
     async def create_user(user: UserCreate) -> User:
         try:
-            user_obj = await User.create(**user.model_dump())
+            user_obj = await User.create(**user.dict())
             return user_obj
         except IntegrityError:
             raise ValueError("Пользователь с таким email уже существует")
 
+
+
     @staticmethod
     async def get_user(user_id: int) -> Optional[User]:
         return await User.get_or_none(id=user_id)
-
     @staticmethod
-    async def get_user_by_email(email: str) -> Optional[User]:
+    async def get_user_by_email(email: str):
         return await User.get_or_none(email=email)
 
 class TeamRepository:

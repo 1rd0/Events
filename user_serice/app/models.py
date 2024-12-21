@@ -2,14 +2,14 @@
 
 from tortoise import fields, models
 
+from tortoise import fields, models
+
 class User(models.Model):
     id = fields.IntField(pk=True)
     email = fields.CharField(max_length=255, unique=True)
     full_name = fields.CharField(max_length=255, null=True)
+    password = fields.CharField(max_length=255)  # Хранение хешированного пароля
     created_at = fields.DatetimeField(auto_now_add=True)
-
-    teams: fields.ReverseRelation["Team"]
-    registrations: fields.ReverseRelation["Registration"]
 
     class Meta:
         table = "users"

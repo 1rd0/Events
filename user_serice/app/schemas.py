@@ -1,23 +1,25 @@
 # app/schemas.py
-
-from pydantic import BaseModel 
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from pydantic_settings import SettingsConfigDict  # Для Pydantic 2.x
-
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 # Схемы для пользователей
 class UserBase(BaseModel):
-    email: str
-    full_name: Optional[str] = None
+    email: str = Field(..., description="Email пользователя")
+    full_name: Optional[str] = Field(None, description="Полное имя пользователя")
 
 class UserCreate(UserBase):
-    pass
+    password: str = Field(..., description="Пароль пользователя")
 
 class UserRead(UserBase):
     id: int
     created_at: datetime
 
-    model_config = SettingsConfigDict(from_attributes=True)  # Включение ORM-режима
+    class Config:
+        from_attributes = True  # Для работы с Pydantic ORM mode
 
 # Схемы для команд
 class TeamBase(BaseModel):
