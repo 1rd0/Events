@@ -25,7 +25,8 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
  
-
+from app.schemas import UserRead  # Убедитесь, что импортирован UserRead
+from app.rabbitmq import send_user_created_message  
 # Регистрация пользователя
 @router.post("/register/", response_model=schemas.UserRead)
 async def register(user: schemas.UserCreate):
@@ -36,6 +37,7 @@ async def register(user: schemas.UserCreate):
     hashed_password = get_password_hash(user.password)
     user.password = hashed_password
     user_obj = await repositories.UserRepository.create_user(user)
+    await send_user_created_message(user_obj)
     return schemas.UserRead.from_orm(user_obj)
 
 # Логин и получение токена
