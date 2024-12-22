@@ -1,10 +1,20 @@
 import aio_pika
+import json
 from app.schemas import TournamentRead
 from typing import List
+from datetime import date, datetime
+
+def custom_json_serializer(obj):
+    """
+    Преобразовать объекты date и datetime в строку.
+    """
+    if isinstance(obj, (date, datetime)):
+        return obj.isoformat()
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 async def send_tournament_update_message(tournament_obj, participants: List[int]):
     """
-    Отправить сообщение о изменении турнира через RabbitMQ.
+    Отправить сообщение об изменении турнира через RabbitMQ.
     """
     # Преобразуем данные турнира в формат JSON
     tournament_data = TournamentRead.from_orm(tournament_obj).dict()
@@ -20,7 +30,7 @@ async def send_tournament_update_message(tournament_obj, participants: List[int]
 
     # Публикуем сообщение в очередь
     await channel.default_exchange.publish(
-        aio_pika.Message(body=json.dumps(message).encode("utf-8")),
+        aio_pika.Message(body=json.dumps(message, default=custom_json_serializer).encode("utf-8")),
         routing_key="tournament_change_queue",
     )
     print(f"Сообщение об обновлении турнира отправлено: {message['tournament']['name']}")

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas import TournamentCreate, TournamentRead, GameCreate, GameRead,TournamentUpdate
 from app.repositories import TournamentRepository, GameRepository
-
+from app.clients import TeamServiceClient
 router = APIRouter()
 
 # CRUD для турниров
@@ -37,16 +37,29 @@ async def create_game(game: GameCreate):
 @router.get("/tournaments/{tournament_id}/games/", response_model=list[GameRead])
 async def get_games_by_tournament(tournament_id: int):
     return [GameRead.from_orm(g) for g in await GameRepository.get_games_by_tournament(tournament_id)]
+from app.rabbitmq import send_tournament_update_message
+
 @router.put("/tournaments/{tournament_id}", response_model=TournamentRead)
 async def update_tournament(tournament_id: int, update_data: TournamentUpdate):
+    # Обновляем данные турнира
     tournament = await TournamentRepository.update_tournament(tournament_id, update_data)
     if not tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
-    return TournamentRead.from_orm(tournament)
-from fastapi import APIRouter, HTTPException
-from app.clients import TeamServiceClient
 
- 
+    # Получаем список зарегистрированных команд через Team Service
+    teams = await TeamServiceClient.get_teams_by_tournament(tournament_id)
+
+    # Собираем email участников для уведомления
+    participants = []
+    for team in teams:
+        for member in team["members"]:
+            participants.append(member["user_id"])  # Список ID пользователей для уведомления
+    print(participants)
+    # Отправляем сообщение в RabbitMQ
+    await send_tournament_update_message(tournament, participants)
+
+    return TournamentRead.from_orm(tournament)
+
 
 @router.get("/tournaments/{tournament_id}/teams/")
 async def get_teams_in_tournament(tournament_id: int):

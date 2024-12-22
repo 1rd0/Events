@@ -6,4 +6,5 @@ app = FastAPI(title="Notification Service")
 
 @app.on_event("startup")
 async def startup_event():
+    # Запускаем оба потребителя
     asyncio.create_task(start_consumer())
