@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.schemas import TournamentCreate, TournamentRead, GameCreate, GameRead
+from app.schemas import TournamentCreate, TournamentRead, GameCreate, GameRead,TournamentUpdate
 from app.repositories import TournamentRepository, GameRepository
 
 router = APIRouter()
@@ -37,3 +37,24 @@ async def create_game(game: GameCreate):
 @router.get("/tournaments/{tournament_id}/games/", response_model=list[GameRead])
 async def get_games_by_tournament(tournament_id: int):
     return [GameRead.from_orm(g) for g in await GameRepository.get_games_by_tournament(tournament_id)]
+@router.put("/tournaments/{tournament_id}", response_model=TournamentRead)
+async def update_tournament(tournament_id: int, update_data: TournamentUpdate):
+    tournament = await TournamentRepository.update_tournament(tournament_id, update_data)
+    if not tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return TournamentRead.from_orm(tournament)
+from fastapi import APIRouter, HTTPException
+from app.clients import TeamServiceClient
+
+ 
+
+@router.get("/tournaments/{tournament_id}/teams/")
+async def get_teams_in_tournament(tournament_id: int):
+    """
+    Получить список команд, зарегистрированных в турнире по ID.
+    """
+    try:
+        teams = await TeamServiceClient.get_teams_by_tournament(tournament_id)
+        return {"tournament_id": tournament_id, "teams": teams}
+    except HTTPException as e:
+        raise e

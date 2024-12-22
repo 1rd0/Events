@@ -31,11 +31,16 @@ class RegistrationRepository:
     @staticmethod
     async def get_registration(registration_id: int):
         return await Registration.get_or_none(id=registration_id)
+    async def get_registrations_by_tournament(tournament_id: int):
+        """
+        Получить все регистрации для указанного турнира.
+        """
+        return await Registration.filter(tournament_id=tournament_id).all()
 import httpx
 from fastapi import HTTPException
 
 class TournamentServiceClient:
-    BASE_URL = "http://localhost:8004"  # Замените на адрес Tournament Service
+    BASE_URL = "http://localhost:8002"  # Замените на адрес Tournament Service
 
     @staticmethod
     async def check_tournament_exists(tournament_id: int):
@@ -47,7 +52,7 @@ class TournamentServiceClient:
                 raise HTTPException(status_code=500, detail="Ошибка проверки турнира")
  
 class UserServiceClient:
-    BASE_URL = "http://localhost:8005"  # URL User Service
+    BASE_URL = "http://localhost:8000"  # URL User Service
 
     @staticmethod
     async def check_user_exists(user_id: int):

@@ -17,7 +17,11 @@ class TournamentRead(TournamentBase):
     created_at: datetime
 
     model_config = SettingsConfigDict(from_attributes=True)
-
+class TournamentUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
 class GameBase(BaseModel):
     name: str
     tournament_id: int

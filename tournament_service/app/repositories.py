@@ -1,6 +1,7 @@
 from app.models import Tournament, Game
-from app.schemas import TournamentCreate, GameCreate
+from app.schemas import TournamentCreate, GameCreate,TournamentUpdate
 from tortoise.exceptions import DoesNotExist
+from typing import List, Optional
 
 class TournamentRepository:
     @staticmethod
@@ -22,6 +23,16 @@ class TournamentRepository:
             await tournament.delete()
             return True
         return False
+    async def update_tournament(tournament_id: int, data: TournamentUpdate) -> Optional[Tournament]:
+        tournament = await Tournament.get_or_none(id=tournament_id)
+        if not tournament:
+            return None
+
+        update_data = data.dict(exclude_unset=True)  # Исключаем поля, которые не указаны
+        for key, value in update_data.items():
+            setattr(tournament, key, value)  # Обновляем значения
+        await tournament.save()
+        return tournament
 
 class GameRepository:
     @staticmethod
